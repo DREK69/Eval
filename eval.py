@@ -7,16 +7,15 @@ import logging
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 
-# 🔐 Credentials
+# 🔐 User Account Login (No Bot Token)
 API_ID = 3184293
 API_HASH = "437f365b4e18d43b8218adc7a6577345"
-BOT_TOKEN = "7583570260:AAGbgYgCCBP0FphuEIIDl5f0KpMsEFY8-nA"
-OWNER_ID = 7967897421
+OWNER_ID = 7967897421  # Only this user can eval
 
-# Initialize the bot
-app = Client("eval_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Initialize User Client (not bot)
+app = Client("user_session", api_id=API_ID, api_hash=API_HASH)
 
-# Eval execution helper
+# Async eval function
 async def aexec(code, c, m, r, u):
     local_vars = {}
     lines = code.strip().split("\n")
@@ -29,8 +28,8 @@ async def aexec(code, c, m, r, u):
     exec(func_code, globals(), local_vars)
     return await local_vars["__aexec"](c, m, r, u)
 
-# /eval command
-@app.on_message(filters.command("eval") & filters.user([OWNER_ID]))
+# Eval command
+@app.on_message(filters.command("eval", prefixes=".") & filters.user(OWNER_ID))
 async def eval_handler(client: Client, message: Message):
     c, m, r, u = client, message, message.reply_to_message, message
     code = message.text.split(None, 1)
@@ -61,5 +60,5 @@ async def eval_handler(client: Client, message: Message):
         except Exception as e:
             logging.error(e)
 
-# Run the bot
+# Run userbot
 app.run()
