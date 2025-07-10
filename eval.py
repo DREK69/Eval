@@ -1,62 +1,65 @@
 from pyrogram import Client, filters
-from async_eval import eval as async_eval
-import pyrogram
-from pyrogram.enums import ChatMemberStatus, ChatType, ParseMode
+from pyrogram.types import Message
+import asyncio
+import time
 import logging
 
-# Logger setup
+# Setup logging
 logging.basicConfig(level=logging.INFO)
 
-# Bot credentials and allowed users
-bot = "7583570260:AAGbgYgCCBP0FphuEIIDl5f0KpMsEFY8-nA"
-users = [7967897421]
+# 🔐 Credentials
+API_ID = 3184293
+API_HASH = "437f365b4e18d43b8218adc7a6577345"
+BOT_TOKEN = "7583570260:AAGbgYgCCBP0FphuEIIDl5f0KpMsEFY8-nA"
+OWNER_ID = 7967897421
 
-# Initialize Client
-app = Client("my_account", api_id=3184293, api_hash="437f365b4e18d43b8218adc7a6577345")
+# Initialize the bot
+app = Client("eval_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# Eval command
-@app.on_message(filters.command("eval", prefixes=[".", "!", "$"]) & filters.user(users))
-async def eval_command(client, message):
-    global c, m, r
-    c, m, r = client, message, message.reply_to_message
+# Eval execution helper
+async def aexec(code, c, m, r, u):
+    local_vars = {}
+    lines = code.strip().split("\n")
+    func_code = "async def __aexec(c, m, r, u):\n"
+    if len(lines) == 1 and not lines[0].strip().startswith(("return", "import", "for", "if", "while", "def", "async")):
+        func_code += f"    return {lines[0]}\n"
+    else:
+        for line in lines:
+            func_code += f"    {line}\n"
+    exec(func_code, globals(), local_vars)
+    return await local_vars["__aexec"](c, m, r, u)
 
-    text = m.text[6:]
+# /eval command
+@app.on_message(filters.command("eval") & filters.user([OWNER_ID]))
+async def eval_handler(client: Client, message: Message):
+    c, m, r, u = client, message, message.reply_to_message, message
+    code = message.text.split(None, 1)
+    if len(code) < 2:
+        return await message.reply_text("`No code provided.`")
+    code = code[1]
     try:
-        vc = str(await async_eval(text))
+        start = time.time()
+        result = str(await aexec(code, c, m, r, u)).replace("<", "").replace(">", "")
     except Exception as e:
-        vc = str(e)
-
+        result = str(e).replace("<", "").replace(">", "")
+    duration = f"__Duration : {time.time() - start:.5f} sec.__"
     try:
-        await message.reply(
-            f"**Input:** `{m.text}`\n\n**Output (json):**\n`{vc}`",
+        await message.reply_text(
+            f"*Input :* `{message.text}`\n\n"
+            f"*Output :* ```json\n{result}```\n"
+            f"{duration}",
             disable_web_page_preview=True,
-            parse_mode=ParseMode.MARKDOWN
         )
     except Exception as e:
         try:
-            await message.reply(
-                f"**Input:** `{m.text}`\n\n**Error:**\n`{e}`",
+            await message.reply_text(
+                f"*Input :* `{message.text}`\n\n"
+                f"*Output :* ```json\n{str(e)}```\n"
+                f"{duration}",
                 disable_web_page_preview=True,
-                parse_mode=ParseMode.MARKDOWN
             )
-        except:
-            pass
+        except Exception as e:
+            logging.error(e)
 
-    # Save result to file
-    with open("Result.txt", "w") as g:
-        g.write(str(vc))
-
-    # Check bot member status in groups
-    if m.chat.type == ChatType.SUPERGROUP:
-        x = (await app.get_chat_member(m.chat.id, (await app.get_me()).id)).status
-        if x in [ChatMemberStatus.MEMBER, ChatMemberStatus.RESTRICTED]:
-            return
-
-    # Send result file
-    try:
-        await message.reply_document("Result.txt")
-    except:
-        return
-
-# Start the bot
+# Run the bot
 app.run()
