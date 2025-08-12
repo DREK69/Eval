@@ -53,8 +53,8 @@ async def eval_handler(client: Client, message: Message):
     duration = f"__Duration : {time.time() - start:.5f} sec.__"
 
     output = (
-        f"*Input :* ```\n{code}```\n\n"
-        f"*Output :* ```json\n{result}```\n"
+        f"**Input :** ```\n{code}```\n\n"
+        f"**Output :** ```json\n{result}```\n"
         f"{duration}"
     )
 
