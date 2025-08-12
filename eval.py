@@ -8,8 +8,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 # 🔐 User Account Login (No Bot Token)
-API_ID = 3184293
-API_HASH = "437f365b4e18d43b8218adc7a6577345"
+API_ID = 25723056
+API_HASH = "cbda56fac135e92b755e1243aefe9697"
 OWNER_ID = 7967897421  # Only this user can eval
 
 # Initialize User Client (not bot)
@@ -34,7 +34,7 @@ async def eval_handler(client: Client, message: Message):
     c, m, r, u = client, message, message.reply_to_message, message
     code = message.text.split(None, 1)
     if len(code) < 2:
-        return await message.reply_text("`No code provided.`")
+        return await message.reply_text("**`No code provided.`**")
     code = code[1]
     try:
         start = time.time()
