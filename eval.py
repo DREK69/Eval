@@ -7,8 +7,8 @@ import logging
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 
-API_ID = 25723056
-API_HASH = "cbda56fac135e92b755e1243aefe9697"
+API_ID = 
+API_HASH = ""
 OWNER_ID = 7110457701  # Only this user can eval
 
 app = Client("sahil", api_id=API_ID, api_hash=API_HASH)
