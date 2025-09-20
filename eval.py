@@ -1,67 +1,80 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message
-import asyncio
-import time
+api_id = 12345
+api_hash = "1ksksdoeoekxmxxmdmemmr"
+sudo_users = ["me", 7110457701]
+send_text_output = False
+bot_token = "dkd:mekee"
+import aiohttp
+import pyrogram
 import logging
-
-# Setup logging
+import uvloop, httpx
+from pyrogram import Client, filters, idle
+import time, random, os, asyncio, sys, io, base64, json
+from pyrogram.types import LinkPreviewOptions
 logging.basicConfig(level=logging.INFO)
-
-API_ID = 
-API_HASH = ""
-OWNER_ID = 7110457701  # Only this user can eval
-
-app = Client("sahil", api_id=API_ID, api_hash=API_HASH)
-
+async def binpaste(data):
+    url = "https://batbin.me/api/v2/paste"
+    async with aiohttp.ClientSession() as client:
+        resp = await client.post(url, data=data)
+        if "application/json" in resp.headers.get("content-type", ""):
+            return f"https://batbin.me/{(await resp.json())['message']}"
+        return resp.text
 async def aexec(code, c, m, r, u):
     local_vars = {}
     lines = code.strip().split("\n")
     func_code = "async def __aexec(c, m, r, u):\n"
-    if len(lines) == 1 and not lines[0].strip().startswith(
-        ("return", "import", "for", "if", "while", "def", "async")
-    ):
-        func_code += f"    return {lines[0]}\n"
+    if len(lines) == 1 and not lines[0].strip().startswith(("return", "import", "for", "if", "while", "def", "async")):
+      func_code += f"    return {lines[0]}\n"
     else:
-        for line in lines:
-            func_code += f"    {line}\n"
+      for line in lines:
+        func_code += f"    {line}\n"
     exec(func_code, globals(), local_vars)
     return await local_vars["__aexec"](c, m, r, u)
-
-@app.on_message(filters.command("eval", prefixes=".") & filters.user(OWNER_ID))
-async def eval_handler(client: Client, message: Message):
-    c, m, r, u = client, message, message.reply_to_message, message
-
-    # Get code from message or reply
-    if message.text:
-        parts = message.text.split(None, 1)
-        code = parts[1] if len(parts) > 1 else ""
-    else:
-        code = ""
-
-    # If still no code, try from replied text
-    if not code and r and r.text:
-        code = r.text
-
-    if not code:
-        return await message.reply_text("⚠️ **No code provided.**\nUse `.eval <code>` or reply to code.")
-
+async def xevalfnc(client, message):
+    if message.reply_to_message_id:
+       message.reply_to_message = await client.get_messages(message.chat.id, message.reply_to_message_id)
+    c,m,r,u = client, message, message.reply_to_message, message.reply_to_message.from_user if message.reply_to_message else None
+    text = m.text[6:]
     try:
-        start = time.time()
-        result = str(await aexec(code, c, m, r, u)).replace("<", "").replace(">", "")
+       start_time = time.time()
+       output = str(await aexec(text, c, m, r, u)).replace('<','').replace('>','')
     except Exception as e:
-        result = str(e).replace("<", "").replace(">", "")
-    duration = f"__Duration : {time.time() - start:.5f} sec.__"
-
-    output = (
-        f"**Input :** ```\n{code}```\n\n"
-        f"**Output :** ```json\n{result}```\n"
-        f"{duration}"
-    )
-
+       output = str(e).replace('<','').replace('>','')
+    link = await binpaste(json.dumps(str(output)))
+    total_time = time.time() - start_time
+    formatted_time = f"__Duration : {total_time:.5f} sec.__"
     try:
-        await message.reply_text(output, disable_web_page_preview=True)
-    except Exception as e:
-        logging.error(e)
-        await message.reply_text(f"❌ **Error sending output:** `{e}`")
+       if message.from_user.id == client.me.id:
+           await message.edit_text(f"""**Input :** `{message.text}`\n\n**Output :** ```json\n{str(output)}```\n{formatted_time}  |  [𝕎𝕖𝕓𝕧𝕚𝕖𝕨]({link})""", link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=pyrogram.enums.ParseMode.MARKDOWN)
+       else:
+           await message.reply_text(f"""**Input :** `{message.text}`\n\n**Output :** ```json\n{str(output)}```\n{formatted_time}  |  [𝕎𝕖𝕓𝕧𝕚𝕖𝕨]({link})""", link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=pyrogram.enums.ParseMode.MARKDOWN)
+    except Exception as e2:
+       if message.from_user.id == client.me.id:
+           await message.edit_text(f"""**Input :** `{message.text}`\n\n**Output :** ```json\n{str(e2)}```\n{formatted_time}  |  [𝕎𝕖𝕓𝕧𝕚𝕖𝕨]({link})""",link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=pyrogram.enums.ParseMode.MARKDOWN)
+       else:
+           await message.reply_text(f"""**Input :** `{message.text}`\n\n**Output :** ```json\n{str(e2)}```\n{formatted_time}  |  [𝕎𝕖𝕓𝕧𝕚𝕖𝕨]({link})""",link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=pyrogram.enums.ParseMode.MARKDOWN)
+       if send_text_output:
+           file = io.BytesIO(str(vc).encode())
+           file.name = "output.txt"
+           try: 
+              await message.reply_document(document=file, caption="Couldn't send as text.")
+           except Exception as e3: 
+              print(e3)
+async def main():
+    global bot, app
+    app = Client("userbot", api_id, api_hash)
+    bot = Client("testingbot", api_id, api_hash, bot_token=bot_token)
+    @app.on_message(filters.command("eval",["!","/","."]) & filters.user(sudo_users))
+    @bot.on_message(filters.command("eval",["!","/","."]) & filters.user(sudo_users))
+    async def evalfnc(client, message):
+        asyncio.create_task(xevalfnc(client, message))
+    await app.start()
+    
+    await bot.start()
+    
+    await idle()
+    
+    await app.start()
+    
+    await bot.stop()
 
-app.run()
+uvloop.run(main())      
