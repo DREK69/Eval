@@ -1,8 +1,8 @@
 api_id = 12345
 api_hash = "1ksksdoeoekxmxxmdmemmr"
-sudo_users = ["me", 7110457701]
+sudo_users = ["me", 8101867786]
 send_text_output = False
-bot_token = "dkd:mekee"
+bot_token = "8343128787:AAG_Itvf97Yi-BAqUs_qky4KdieF-pn-sno"
 import aiohttp
 import pyrogram
 import logging
