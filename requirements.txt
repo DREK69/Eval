@@ -2,3 +2,5 @@ kurigram
 tgcrypto
 async_eval
 aiohttp
+uvloop
+httpx
