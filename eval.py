@@ -1,8 +1,8 @@
-api_id = 12345
-api_hash = "1ksksdoeoekxmxxmdmemmr"
+api_id = 33936840
+api_hash = "53c7008cac6d8060a4e1ec1a7e2381bd"
 sudo_users = ["me", 8101867786]
 send_text_output = False
-bot_token = "8343128787:AAG_Itvf97Yi-BAqUs_qky4KdieF-pn-sno"
+bot_token = "8862623517:AAHzug8o1vEmjKsgg4K66hH3k5h_VGZ9cuY"
 import aiohttp
 import pyrogram
 import logging
