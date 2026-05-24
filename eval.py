@@ -1,8 +1,8 @@
 api_id = 33936840
 api_hash = "53c7008cac6d8060a4e1ec1a7e2381bd"
-sudo_users = ["me", 8323807387]
+sudo_users = ["me", 8842115436]
 send_text_output = False
-bot_token = "8862623517:AAHzug8o1vEmjKsgg4K66hH3k5h_VGZ9cuY"
+bot_token = "8690434506:AAEGUCDLko9gP-peB5JVfkQueFXztaO5nh0"
 import aiohttp
 import pyrogram
 import logging
